@@ -1,4 +1,5 @@
 bmon.sqlite
+bms_data.sqlite
 data/*.csv
 
 # Byte-compiled / optimized / DLL files
