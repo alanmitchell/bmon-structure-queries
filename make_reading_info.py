@@ -2,6 +2,7 @@
 
 import sqlite3
 import time
+from datetime import datetime
 import sys
 from pathlib import Path
 import pytz
@@ -12,7 +13,6 @@ try:
 
     # Delete the old sensor_stats file
     Path('sensor_stats.sqlite').unlink(missing_ok=True)
-    input('Hello')
 
     conn_stats = sqlite3.connect('sensor_stats.sqlite')
     cur_stats = conn_stats.cursor()
@@ -44,12 +44,25 @@ try:
                 sql = f'SELECT max(ts) FROM [{sensor_id}]'
                 mins_ago = (time.time() - cur_readings.execute(sql).fetchone()[0]) / 60.0
                 mins_ago = round(mins_ago, 1)
-                print(sensor_id, rdg_ct, mins_ago)
                 sql = f"INSERT INTO sensor_info VALUES ('{sensor_id}', {mins_ago}, {rdg_ct})"
                 cur_stats.execute(sql)
             except:
                 print(f'Problem with {sensor_id}')
                 print(sys.exc_info())
+    
+    tz_ak = pytz.timezone('US/Alaska')    # want result in Alaska Time
+    sql = 'SELECT id, ts, message FROM _alert_log'
+    for sensor_id, ts_unix, message in cur_readings.execute(sql).fetchall():
+        try:
+            print(sensor_id, ts_unix, message)
+            ts = datetime.utcfromtimestamp(ts_unix)
+            ts = pytz.utc.localize(ts)     # make it timezone aware
+            ts = ts.astimezone(tz_ak)         # convert to Alaska time
+            ts_text = ts.strftime('%Y-%m-%d %H:%M:%S')
+            sql = f"INSERT INTO alert_events VALUES ({ts_unix}, '{ts_text}', '{sensor_id}', '{message}')"
+            cur_stats.execute(sql)
+        except:
+            print(sys.exc_info())
 
 except:
     print(sys.exc_info())
