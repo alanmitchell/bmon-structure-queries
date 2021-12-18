@@ -11,13 +11,13 @@ try:
     conn_readings = sqlite3.connect('bms_data.sqlite')
     cur_readings = conn_readings.cursor()
 
-    # Delete the old sensor_stats file
+    # Delete the old sensor_stats database
     Path('sensor_stats.sqlite').unlink(missing_ok=True)
 
     conn_stats = sqlite3.connect('sensor_stats.sqlite')
     cur_stats = conn_stats.cursor()
 
-    # Create the two tables
+    # Create the two tables in the Sensor Stats database
     sql = """CREATE TABLE alert_events (
     ts_unix INTEGER,
     ts TEXT,
@@ -34,6 +34,9 @@ try:
     );"""
     cur_stats.execute(sql)
 
+    # Build the Sensor Information table in the new Stats database.
+    # This includes how many minutes ago the sensor last reported, and includes
+    # the total reading count for the sensor.
     sql = 'SELECT name FROM sqlite_master WHERE type = "table"'
     for row in cur_readings.execute(sql).fetchall():
         sensor_id = row[0]
@@ -50,11 +53,12 @@ try:
                 print(f'Problem with {sensor_id}')
                 print(sys.exc_info())
     
+    # Create an expanded Alert Events table in the Stats database, which adds a field
+    # that displays timestamp in human-readable Alaska Time.
     tz_ak = pytz.timezone('US/Alaska')    # want result in Alaska Time
     sql = 'SELECT id, ts, message FROM _alert_log'
     for sensor_id, ts_unix, message in cur_readings.execute(sql).fetchall():
         try:
-            print(sensor_id, ts_unix, message)
             ts = datetime.utcfromtimestamp(ts_unix)
             ts = pytz.utc.localize(ts)     # make it timezone aware
             ts = ts.astimezone(tz_ak)         # convert to Alaska time
