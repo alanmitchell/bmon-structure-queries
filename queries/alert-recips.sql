@@ -3,7 +3,8 @@ SELECT
 	sensor.title AS sensor_name,
 	alert.condition AS alert_condition,
 	alert.test_value AS test_value,
-	recipient.name AS person_alerted
+	recipient.name AS person_alerted,
+	recipient.email_address AS alerted_email
 FROM 
 	bmsapp_sensor AS sensor,  
 	bmsapp_building AS building,
