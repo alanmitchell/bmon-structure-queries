@@ -2,7 +2,8 @@ ATTACH "sensor_stats.sqlite" AS stats;
 SELECT 
 	building.title AS building_name,
 	sensor_group.title AS group_name,
-	sensor.title AS sensor_name, 
+	sensor.title AS sensor_name,
+	sensor.sensor_id as sensor_id,
 	sensor_unit.label AS unit_type,
 	stats.last_report as last_report_minutes,
 	stats.reading_count as reading_count
