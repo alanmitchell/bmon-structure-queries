@@ -56,7 +56,7 @@ try:
     # Create an expanded Alert Events table in the Stats database, which adds a field
     # that displays timestamp in human-readable Alaska Time.
     tz_ak = pytz.timezone('US/Alaska')    # want result in Alaska Time
-    sql = 'SELECT id, ts, message FROM _alert_log'
+    sql = 'SELECT sensor_id, ts, message FROM _alert_log'
     for sensor_id, ts_unix, message in cur_readings.execute(sql).fetchall():
         try:
             ts = datetime.utcfromtimestamp(ts_unix)
